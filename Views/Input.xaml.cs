@@ -27,7 +27,7 @@ public partial class Input : Window
                 carId.BorderBrush = Brushes.Red;
             }
         }
-        reg = @"^\d+(?:[\.,]\d+)?$";
+        reg = @"^\d+(?:[\.,]\d{1,3}|)$";
         if (!Regex.IsMatch(grossWeight.Text, reg))
         {
             crunch = false;

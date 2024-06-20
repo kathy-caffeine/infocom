@@ -118,9 +118,9 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var newRecord = new DataRecord
         {
             CarId = GenerateCarId(),
-            GrossWeight = Math.Round(random.NextDouble() * 100, 2),
-            TareWeight = Math.Round(random.NextDouble() * 50, 2),
-            NetWeight = Math.Round(random.NextDouble() * 75, 2),
+            GrossWeight = Math.Round(random.NextDouble() * 100, 3),
+            TareWeight = Math.Round(random.NextDouble() * 50, 3),
+            NetWeight = Math.Round(random.NextDouble() * 75, 3),
             TareDate = DateOnly.FromDateTime(DateTime.Now),
             GrossDate = DateOnly.FromDateTime(DateTime.Now)
         };
@@ -171,7 +171,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             if (_sqlConnection.State is not System.Data.ConnectionState.Closed)
                 _sqlConnection.Close();
             _sqlConnection.Open();
-            var command = "select * from records;";
+            var command = "select * from data_records;";
             SqlCommand _sqlCommand = new SqlCommand(command, _sqlConnection);
             SqlDataReader reader = _sqlCommand.ExecuteReader();
             while (reader.Read())
@@ -215,7 +215,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         var _sqlTransaction = _sqlConnection.BeginTransaction();
         try
         {
-            var command = "insert into records(car_id, gross_weight, tare_weight, net_weight, gross_date, tare_date) values (@car_id, @gross_weight, @tare_weight, @net_weight, @gross_date, @tare_date)";
+            var command = "insert into data_records(car_id, gross_weight, tare_weight, net_weight, gross_date, tare_date) values (@car_id, @gross_weight, @tare_weight, @net_weight, @gross_date, @tare_date)";
             SqlCommand _sqlCommand = new SqlCommand(command, _sqlConnection, _sqlTransaction);
             _sqlCommand.Parameters.AddWithValue("@car_id", newRecord.CarId);
             _sqlCommand.Parameters.AddWithValue("@gross_weight", Convert.ToDecimal(newRecord.GrossWeight));

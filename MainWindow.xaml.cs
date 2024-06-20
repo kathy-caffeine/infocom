@@ -44,7 +44,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         }
     }
 
-    public Func<double, string> YFormatter { get; set; }
     private readonly SqlConnection _sqlConnection = new SqlConnection(@"Data Source=WIN-2EF5KQG48GQ\SQLEXPRESS;Initial Catalog=DataRecord;Integrated Security=True");
 
     public MainWindow()
@@ -59,39 +58,15 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         dataGrid.ItemsSource = DataRecords;
         chart.DataContext = this;
         Task.Run(LoadDataAsync);
-        
-        YFormatter = value => value.ToString("F2");
     }
 
 
     private void AddRandomButton_Click(object sender, RoutedEventArgs e)
     {
-        var r = AddRandomRecord();
-        if (_sqlConnection.State is not System.Data.ConnectionState.Closed)
-            _sqlConnection.Close();
-        _sqlConnection.Open();
-        var _sqlTransaction = _sqlConnection.BeginTransaction();
-        try
-        {
-            var command = "insert into records(car_id, gross_weight, tare_weight, net_weight, gross_date, tare_date) values (@car_id, @gross_weight, @tare_weight, @net_weight, @gross_date, @tare_date)";
-            SqlCommand _sqlCommand = new SqlCommand(command, _sqlConnection, _sqlTransaction);
-            _sqlCommand.Parameters.AddWithValue("@car_id", r.CarId);
-            _sqlCommand.Parameters.AddWithValue("@gross_weight", Convert.ToDecimal(r.GrossWeight));
-            _sqlCommand.Parameters.AddWithValue("@tare_weight", Convert.ToDecimal(r.TareWeight));
-            _sqlCommand.Parameters.AddWithValue("@net_weight", Convert.ToDecimal(r.NetWeight));
-            _sqlCommand.Parameters.AddWithValue("@gross_date", r.GrossDate.ToDateTime(TimeOnly.MinValue));
-            _sqlCommand.Parameters.AddWithValue("@tare_date", r.TareDate.ToDateTime(TimeOnly.MinValue));
-            _sqlCommand.ExecuteNonQuery();
-            _sqlTransaction.Commit();
-        }
-        catch
-        {
-            _sqlTransaction.Rollback();
-        }
-        finally 
-        { 
-            _sqlConnection.Close(); 
-        }
+        var newRecord = CreateRandomRecord();
+        DataRecords.Add(newRecord);
+        UpdateSeriesCollection();
+        AddRecordToDB(newRecord);
     }
 
     private void AddCustomButton_Click(object sender, RoutedEventArgs e)
@@ -110,11 +85,11 @@ public partial class MainWindow : Window, INotifyPropertyChanged
                     GrossDate = DateOnly.Parse(inputWindow.GrossDate),
                     TareDate = DateOnly.Parse(inputWindow.TareDate),
                 };
-                // положить в бд
+                DataRecords.Add(newRecord);
+                UpdateSeriesCollection();
+                AddRecordToDB(newRecord);
             }
         }
-        
-        // радостно завершиться
     }
 
     public event PropertyChangedEventHandler PropertyChanged;
@@ -137,7 +112,7 @@ public partial class MainWindow : Window, INotifyPropertyChanged
         return $"{firstLetter}{digits}{lastTwoLetters}";
     }
 
-    private DataRecord AddRandomRecord()
+    private DataRecord CreateRandomRecord()
     {
         var random = new Random();
         var newRecord = new DataRecord
@@ -149,9 +124,6 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             TareDate = DateOnly.FromDateTime(DateTime.Now),
             GrossDate = DateOnly.FromDateTime(DateTime.Now)
         };
-
-        DataRecords.Add(newRecord);
-        UpdateSeriesCollection();
         return newRecord;
     }
 
@@ -232,5 +204,38 @@ public partial class MainWindow : Window, INotifyPropertyChanged
             UpdateSeriesCollection();
             chart.Update();
         });
+    }
+
+    private bool AddRecordToDB(DataRecord newRecord)
+    {
+        bool result;
+        if (_sqlConnection.State is not System.Data.ConnectionState.Closed)
+            _sqlConnection.Close();
+        _sqlConnection.Open();
+        var _sqlTransaction = _sqlConnection.BeginTransaction();
+        try
+        {
+            var command = "insert into records(car_id, gross_weight, tare_weight, net_weight, gross_date, tare_date) values (@car_id, @gross_weight, @tare_weight, @net_weight, @gross_date, @tare_date)";
+            SqlCommand _sqlCommand = new SqlCommand(command, _sqlConnection, _sqlTransaction);
+            _sqlCommand.Parameters.AddWithValue("@car_id", newRecord.CarId);
+            _sqlCommand.Parameters.AddWithValue("@gross_weight", Convert.ToDecimal(newRecord.GrossWeight));
+            _sqlCommand.Parameters.AddWithValue("@tare_weight", Convert.ToDecimal(newRecord.TareWeight));
+            _sqlCommand.Parameters.AddWithValue("@net_weight", Convert.ToDecimal(newRecord.NetWeight));
+            _sqlCommand.Parameters.AddWithValue("@gross_date", newRecord.GrossDate.ToDateTime(TimeOnly.MinValue));
+            _sqlCommand.Parameters.AddWithValue("@tare_date", newRecord.TareDate.ToDateTime(TimeOnly.MinValue));
+            _sqlCommand.ExecuteNonQuery();
+            _sqlTransaction.Commit();
+            result = true;
+        }
+        catch
+        {
+            _sqlTransaction.Rollback();
+            result = false;
+        }
+        finally
+        {
+            _sqlConnection.Close();
+        }
+        return result;
     }
 }

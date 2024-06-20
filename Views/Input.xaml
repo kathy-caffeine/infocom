@@ -5,7 +5,7 @@
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:WpfApp.Views"
         mc:Ignorable="d"
-        Title="InputWindow" Height="250" Width="350">
+        Title="Введите данные" Height="250" Width="350">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="Auto"/>
@@ -39,7 +39,7 @@
         <TextBlock Text="Gross Date:" Grid.Row="5" Grid.Column="0" VerticalAlignment="Center" Margin="5,5,5,5"/>
         <DatePicker Name="grossDate" Grid.Row="5" Grid.Column="1" Margin="5,5,5,5"/>
 
-        <Button IsDefault="True" Content="ОК" Grid.Row="6" Grid.Column="0" Height="20" Width="50" Margin="15,5,15,5" Click="Button_Click"/>
+        <Button Name="okButton" Content="ОК" Grid.Row="6" Grid.Column="0" Height="20" Width="50" Margin="15,5,15,5" Click="Button_Click"/>
         <Button IsCancel="True" Content="Отмена" Grid.Row="6" Grid.Column="1" Height="20" Width="50" Margin="5,5,0,5" HorizontalAlignment="Left"/>
     </Grid>
 </Window>
